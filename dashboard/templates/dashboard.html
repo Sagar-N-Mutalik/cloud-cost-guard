@@ -1,0 +1,535 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Cost Guard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        :root {
+            --aws-blue: #232F3E;
+            --aws-blue-light: #374151;
+            --aws-orange: #FF9900;
+            --aws-orange-hover: #e88b00;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+        /* Top Navbar */
+        .top-nav {
+            background-color: var(--aws-blue);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--aws-orange);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .btn-logout {
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .btn-logout:hover {
+            color: #ef4444 !important;
+        }
+        /* Dashboard Container */
+        .dashboard-container {
+            padding: 30px;
+        }
+        /* Stats Overview */
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: slideUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .stat-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        .stat-icon.blue { background-color: #eff6ff; color: #3b82f6; }
+        .stat-icon.orange { background-color: #fff7ed; color: var(--aws-orange); }
+        .stat-icon.red { background-color: #fef2f2; color: #ef4444; }
+        .stat-details h3 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .stat-details p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        /* Cards */
+        .custom-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease forwards;
+            height: calc(100% - 30px);
+        }
+        .custom-card-header {
+            background-color: transparent;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 20px 24px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .custom-card-body {
+            padding: 24px;
+        }
+        /* Form */
+        .form-control {
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+        }
+        .form-control:focus {
+            border-color: var(--aws-orange);
+            box-shadow: 0 0 0 0.25rem rgba(255, 153, 0, 0.25);
+        }
+        .btn-aws {
+            background-color: var(--aws-orange);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .btn-aws:hover {
+            background-color: var(--aws-orange-hover);
+            color: white;
+        }
+        /* List Group */
+        .account-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .account-item {
+            padding: 16px 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .account-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .account-info strong {
+            font-size: 1.1rem;
+            color: var(--aws-blue);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .account-info small {
+            color: var(--text-muted);
+            font-family: monospace;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+        .empty-state h5 {
+            color: var(--aws-blue);
+            font-weight: 600;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+        }
+        
+        .success-icon-container {
+            cursor: pointer;
+            display: inline-block;
+        }
+        .success-icon-container i {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .success-icon-container:hover i {
+            color: #047857 !important; /* darker green */
+            transform: scale(1.1);
+        }
+        
+        /* Table */
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 16px 24px;
+        }
+        .table td {
+            padding: 16px 24px;
+            vertical-align: middle;
+            color: var(--text-main);
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        /* Tooltip */
+        .custom-tooltip {
+            --bs-tooltip-bg: var(--aws-blue);
+            --bs-tooltip-color: white;
+        }
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        
+        .btn-scan {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .btn-scan.scanning {
+            color: transparent !important;
+            pointer-events: none;
+            background-color: var(--aws-blue) !important;
+            border-color: var(--aws-blue) !important;
+        }
+        .btn-scan.scanning::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-top: -0.6rem;
+            margin-left: -0.6rem;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg top-nav">
+    <div class="container-fluid px-4 py-2">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
+            <i class="fa-brands fa-aws text-warning" style="font-size: 2rem;"></i>
+            <span class="fw-bold tracking-tight text-white">Cloud Cost Guard</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-4">
+                <li class="nav-item">
+                    <a class="nav-link active text-white fw-medium" href="{% url 'dashboard' %}"><i class="fa-solid fa-house me-1 text-white-50"></i> Dashboard</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div class="user-profile">
+                    <span class="text-white-50 fw-normal me-2">Welcome,</span>
+                    <span class="text-white fw-bold">{{ user.username }}</span>
+                    <div class="user-avatar ms-3 shadow-sm">{{ user.username|make_list|first|upper }}</div>
+                    <a href="{% url 'login' %}" class="btn-logout ms-4 text-white-50" title="Logout"><i class="fa-solid fa-right-from-bracket fs-5"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="dashboard-container container-fluid px-4 px-xl-5">
+    <div class="mb-4 d-flex justify-content-between align-items-end">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Overview</h3>
+            <p class="text-muted mb-0">Monitor your AWS accounts and identify zombie resources.</p>
+        </div>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="row mb-2">
+        <div class="col-md-4 mb-4">
+            <div class="stat-card delay-1">
+                <div class="stat-icon blue">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>{{ accounts|length }}</h3>
+                    <p>Protected Accounts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="stat-card delay-2">
+                <div class="stat-icon red">
+                    <i class="fa-solid fa-ghost"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>{{ recent_alerts|length }}</h3>
+                    <p>Zombie Alerts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="stat-card delay-3">
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Optimized</h3>
+                    <p>Status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accounts Management -->
+    <div class="row mb-2">
+        <!-- Add Account Column -->
+        <div class="col-lg-5 col-xl-4 mb-4">
+            <div class="custom-card delay-1">
+                <div class="custom-card-header bg-white">
+                    <span><i class="fa-solid fa-link text-warning me-2"></i>Connect Account</span>
+                </div>
+                <div class="custom-card-body">
+                    <div class="alert alert-info border-0 bg-light text-muted small mb-4">
+                        <i class="fa-solid fa-circle-info me-1"></i> Create an IAM Role with <strong>ViewOnlyAccess</strong>, then paste its ARN below.
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Account Nickname</label>
+                            <input type="text" name="account_name" class="form-control" placeholder="e.g., Prod E-Commerce" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase">
+                                IAM Role ARN 
+                                <i class="fa-solid fa-circle-info ms-1 text-primary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" title="The Amazon Resource Name of the IAM role with ViewOnlyAccess that Cost Guard will assume."></i>
+                            </label>
+                            <input type="text" name="role_arn" class="form-control" placeholder="arn:aws:iam::123456789012:role/CostGuard" required>
+                        </div>
+                        <button type="submit" class="btn btn-aws w-100"><i class="fa-solid fa-shield-check me-2"></i>Secure Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protected Accounts Column -->
+        <div class="col-lg-7 col-xl-8 mb-4">
+            <div class="custom-card delay-2">
+                <div class="custom-card-header bg-white">
+                    <span><i class="fa-solid fa-list-check text-primary me-2"></i>Protected Accounts</span>
+                </div>
+                <div class="custom-card-body p-4">
+                    <ul class="account-list">
+                        {% for account in accounts %}
+                            <li class="account-item">
+                                <div class="account-info">
+                                    <strong>{{ account.account_name }}</strong>
+                                    <small><i class="fa-solid fa-key me-1"></i>{{ account.iam_role_arn }}</small>
+                                </div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <a href="{% url 'manual_scan' account.id %}" class="btn btn-sm btn-outline-primary fw-bold btn-scan" onclick="startScan(this)">
+                                        <i class="fa-solid fa-radar me-1"></i>Scan
+                                    </a>
+                                    <form action="{% url 'delete_account' account.id %}" method="POST" class="d-inline" onsubmit="return confirmDelete('{{ account.account_name|escapejs }}');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" title="Remove Account">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <div class="empty-state py-5">
+                                <i class="fa-solid fa-server opacity-50"></i>
+                                <h5 class="mt-3">No Accounts Secured</h5>
+                                <p class="mb-0">Connect your first AWS account on the left to start saving money.</p>
+                            </div>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Full Width Column -->
+    <div class="row">
+        <div class="col-12">
+            <div class="custom-card delay-3 h-100">
+                <div class="custom-card-header bg-white d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>Zombie Resources Detected</span>
+                    <span class="badge bg-danger rounded-pill">{{ recent_alerts|length }} Alerts</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>AWS Account</th>
+                                <th>Resource ID</th>
+                                <th>Wasted Time</th>
+                                <th>Detected On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alert in recent_alerts %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ alert.account.account_name }}</td>
+                                <td><code class="text-primary bg-light px-3 py-2 rounded border fs-6">{{ alert.instance_id }}</code></td>
+                                <td>
+                                    <span class="text-danger fw-bold"><i class="fa-solid fa-clock me-1"></i>{{ alert.hours_running|floatformat:1 }} hrs</span>
+                                </td>
+                                <td class="text-muted">{{ alert.scan_time|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state py-5">
+                                        <div class="success-icon-container">
+                                            <i class="fa-solid fa-check-circle text-success" style="font-size: 5rem;"></i>
+                                        </div>
+                                        <h4 class="mt-3 text-dark fw-bold">All Clear!</h4>
+                                        <p class="mb-0 text-muted">We didn't find any abandoned resources. Your infrastructure is highly optimized.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Custom confirm dialog for delete
+    function confirmDelete(accountName) {
+        return confirm(`Are you sure you want to disconnect '${accountName}'? Cost Guard will immediately stop monitoring this account.`);
+    }
+
+    // Scan button animation
+    function startScan(btn) {
+        btn.classList.add('scanning');
+        btn.classList.remove('btn-outline-primary');
+    }
+
+    // Process Django Messages as Toasts
+    {% if messages %}
+        {% for message in messages %}
+            let toastColor = "#3b82f6"; // default info blue
+            let icon = "fa-circle-info";
+            
+            {% if message.tags == 'success' %}
+                toastColor = "#10b981"; // emerald
+                icon = "fa-circle-check";
+            {% elif message.tags == 'warning' %}
+                toastColor = "#f59e0b"; // amber
+                icon = "fa-triangle-exclamation";
+            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                toastColor = "#ef4444"; // red
+                icon = "fa-circle-xmark";
+            {% endif %}
+
+            Toastify({
+                text: `<div class="d-flex align-items-center gap-2"><i class="fa-solid ${icon}"></i> <span>{{ message|escapejs }}</span></div>`,
+                duration: 5000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                stopOnFocus: true,
+                escapeMarkup: false,
+                style: {
+                    background: "#ffffff",
+                    color: "#111827",
+                    borderLeft: `4px solid ${toastColor}`,
+                    boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                    borderRadius: "8px",
+                    padding: "16px",
+                    fontWeight: "500",
+                    fontFamily: "'Inter', sans-serif"
+                }
+            }).showToast();
+        {% endfor %}
+    {% endif %}
+</script>
+</body>
+</html>
