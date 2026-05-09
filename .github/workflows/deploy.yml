@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
 jobs:
   # ==========================================
   # JOB 1: RUN TERRAFORM & GET THE IP
