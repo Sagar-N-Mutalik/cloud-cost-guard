@@ -64,7 +64,7 @@ jobs:
         with:
           host: ${{ needs.infrastructure.outputs.ec2_ip }} # Uses the IP from Job 1!
           username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/app
             git pull origin main
