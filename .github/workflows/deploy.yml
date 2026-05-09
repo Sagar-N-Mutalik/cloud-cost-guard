@@ -62,23 +62,10 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ needs.infrastructure.outputs.ec2_ip }} # Uses the IP from Job 1!
+          host: ${{ needs.infrastructure.outputs.ec2_ip }} 
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/app
-            git pull origin main
-            
-            docker build -t costguard-app .
-            docker stop $(docker ps -q --filter ancestor=costguard-app) || true
-            docker rm $(docker ps -aq --filter ancestor=costguard-app) || true
-            
-            docker run -d -p 80:80 \
-              -e DATABASE_URL="${{ secrets.NEON_DATABASE_URL }}" \
-              -e SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
-              -e EMAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
-              -e DEBUG="False" \
-              costguard-appscript: |
             # 1. Wait until Terraform's user_data (Docker/Git installation) finishes
             cloud-init status --wait
             
