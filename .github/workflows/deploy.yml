@@ -1,4 +1,4 @@
-name: Deploy Cloud Cost Guard to AWS
+name: Deploy Infrastructure and App
 
 on:
   push:
@@ -6,13 +6,18 @@ on:
       - main
 
 jobs:
-  deploy:
+  # ==========================================
+  # JOB 1: RUN TERRAFORM & GET THE IP
+  # ==========================================
+  infrastructure:
     runs-on: ubuntu-latest
+    outputs:
+      ec2_ip: ${{ steps.tf-ip.outputs.ip }} # Exports the IP for Job 2
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 1. Log into AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -20,21 +25,42 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # 2. Find the current running IP dynamically
-      - name: Get EC2 Public IP
-        id: get-ip
-        run: |
-          IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=CostGuard-Prod" "Name=instance-state-name,Values=running" \
-            --query "Reservations[0].Instances[0].PublicIpAddress" \
-            --output text)
-          echo "EC2_IP=$IP" >> $GITHUB_ENV
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-      # 3. Deploy using the dynamic IP
+      - name: Terraform Init & Apply
+        working-directory: ./terraform-setup
+        run: |
+          terraform init
+          # This ensures the server is running. If it's stopped, AWS turns it on.
+          terraform apply -auto-approve 
+
+      - name: Extract Public IP
+        id: tf-ip
+        working-directory: ./terraform-setup
+        run: |
+          # Grabs the raw IP from the Terraform output we added
+          IP=$(terraform output -raw ec2_public_ip)
+          echo "ip=$IP" >> $GITHUB_OUTPUT
+
+  # ==========================================
+  # JOB 2: DEPLOY DOCKER CONTAINER
+  # ==========================================
+  deploy:
+    needs: infrastructure # Waits for Job 1 to finish successfully
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Add a tiny delay to ensure the EC2 SSH daemon is fully awake
+      - name: Wait for EC2 Boot
+        run: sleep 30
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ env.EC2_IP }}
+          host: ${{ needs.infrastructure.outputs.ec2_ip }} # Uses the IP from Job 1!
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |

@@ -1,5 +1,12 @@
 # main.tf
-
+terraform {
+  backend "s3" {
+    # Replace with a completely unique name (e.g., yourname-costguard-state-2026)
+    bucket = "snm-costguard-state-2026" 
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
 provider "aws" {
   region = "us-east-1" 
 }
@@ -67,6 +74,6 @@ resource "aws_instance" "costguard_server" {
 }
 
 # 3. Output the IP
-output "website_url" {
-  value = "http://${aws_instance.costguard_server.public_ip}"
+output "ec2_public_ip" {
+  value = aws_instance.costguard_server.public_ip
 }
