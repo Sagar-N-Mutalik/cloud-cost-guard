@@ -78,4 +78,27 @@ jobs:
               -e SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
               -e EMAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
               -e DEBUG="False" \
+              costguard-appscript: |
+            # 1. Wait until Terraform's user_data (Docker/Git installation) finishes
+            cloud-init status --wait
+            
+            # 2. Check if the app folder exists. If not, clone it.
+            if [ ! -d "/home/ubuntu/app" ]; then
+              git clone https://github.com/sagar-n-mutalik/cloud-cost-guard.git /home/ubuntu/app
+            fi
+            
+            # 3. Go into the folder and get the latest code
+            cd /home/ubuntu/app
+            git pull origin main
+            
+            # 4. Build and Run the Docker container
+            docker build -t costguard-app .
+            docker stop $(docker ps -q --filter ancestor=costguard-app) || true
+            docker rm $(docker ps -aq --filter ancestor=costguard-app) || true
+            
+            docker run -d -p 80:80 \
+              -e DATABASE_URL="${{ secrets.NEON_DATABASE_URL }}" \
+              -e SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+              -e EMAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
+              -e DEBUG="False" \
               costguard-app
