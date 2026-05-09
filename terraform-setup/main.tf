@@ -42,6 +42,7 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "costguard_server" {
   ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS (us-east-1)
   instance_type = "t3.micro"
+  key_name      = "costguard-key"
   
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
@@ -54,18 +55,18 @@ resource "aws_instance" "costguard_server" {
               systemctl start docker
               systemctl enable docker
 
-              # Clone your repository (REPLACE WITH YOUR ACTUAL GITHUB URL)
-              git clone https://github.com/YOUR_GITHUB_USERNAME/cloud-cost-guard.git /home/ubuntu/app
-              cd /home/ubuntu/app
+            #   # Clone your repository (REPLACE WITH YOUR ACTUAL GITHUB URL)
+            #   git clone https://github.com/Sagar-N-Mutalik/cloud-cost-guard.git /home/ubuntu/app
+            #   cd /home/ubuntu/app
 
-              # Build the Docker image
-              docker build -t costguard-app .
+            #   # Build the Docker image
+            #   docker build -t costguard-app .
 
-              # Run the Docker container
-              # REPLACE the DATABASE_URL with your Neon DB connection string
-              docker run -d -p 80:80 \
-                -e DATABASE_URL="postgres://username:password@ep-cool-butterfly-123456.us-east-2.aws.neon.tech/neondb?sslmode=require" \
-                costguard-app
+            #   # Run the Docker container
+            #   # REPLACE the DATABASE_URL with your Neon DB connection string
+            #   docker run -d -p 80:80 \
+            #     -e DATABASE_URL="postgres://username:password@ep-cool-butterfly-123456.us-east-2.aws.neon.tech/neondb?sslmode=require" \
+            #     costguard-app
               EOF
 
   tags = {
