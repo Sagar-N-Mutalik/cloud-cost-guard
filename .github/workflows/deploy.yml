@@ -1,4 +1,4 @@
-name: Deploy to AWS EC2
+name: Deploy Cloud Cost Guard to AWS
 
 on:
   push:
@@ -12,23 +12,42 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Deploy to EC2 via SSH
+      # 1. Log into AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # 2. Find the current running IP dynamically
+      - name: Get EC2 Public IP
+        id: get-ip
+        run: |
+          IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=CostGuard-Prod" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].PublicIpAddress" \
+            --output text)
+          echo "EC2_IP=$IP" >> $GITHUB_ENV
+
+      # 3. Deploy using the dynamic IP
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.EC2_HOST_IP }}
+          host: ${{ env.EC2_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/app
             git pull origin main
             
-            # Rebuild the Docker image with the new code
             docker build -t costguard-app .
-            
-            # Stop the old container
             docker stop $(docker ps -q --filter ancestor=costguard-app) || true
+            docker rm $(docker ps -aq --filter ancestor=costguard-app) || true
             
-            # Run the new container
             docker run -d -p 80:80 \
               -e DATABASE_URL="${{ secrets.NEON_DATABASE_URL }}" \
+              -e SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+              -e EMAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
+              -e DEBUG="False" \
               costguard-app

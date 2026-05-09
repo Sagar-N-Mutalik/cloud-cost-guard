@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6=82&i8mrhep1qlwkgad%i=^ythzqdy(6=k+2g5*m0vb(74y1n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -131,7 +131,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sagarnmutalik6@gmail.com' # Replace with a real Gmail address
-EMAIL_HOST_PASSWORD = 'uriyejjfyjbgealh' # Replace with a Google App Password
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD') # Pulled securely! # Replace with a Google App Password
 
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
