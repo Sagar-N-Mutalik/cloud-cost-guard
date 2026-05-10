@@ -363,22 +363,40 @@
                 </div>
                 <div class="custom-card-body">
                     <div class="alert alert-info border-0 bg-light text-muted small mb-4">
-                        <i class="fa-solid fa-circle-info me-1"></i> <strong>Step 1:</strong> Create an IAM Role with <strong>ViewOnlyAccess</strong>.<br><br>
-                        <strong>Step 2:</strong> In the <strong>Trust relationships</strong> tab of your new role, click <em>Edit trust policy</em> and paste the following. <br>
-                        <span class="text-danger fw-bold">Note for Developer: Replace YOUR_AWS_ACCOUNT_ID with your actual 12-digit AWS Account ID before the next deployment.</span>
-                        <pre class="bg-dark text-white p-2 mt-2 rounded" style="font-family: monospace;"><code>{
+                        <div class="mb-3">
+                            <strong class="text-dark d-block mb-1"><i class="fa-solid fa-circle-info me-1"></i>Step 1: Create a Custom Trust Policy</strong>
+                            <ol class="mb-2 ps-3">
+                                <li>Log into your AWS Console and navigate to <strong>IAM > Roles</strong>.</li>
+                                <li>Click <strong>Create role</strong> and select <strong>Custom trust policy</strong>.</li>
+                                <li>Delete the default text and paste the exact code below. This allows our secure server to scan your account:</li>
+                            </ol>
+                            <pre class="bg-dark text-white p-2 rounded mb-0" style="font-family: monospace;"><code>{
     "Version": "2012-10-17",
     "Statement": [
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:root"
+                "AWS": "arn:aws:iam::396502421501:root"
             },
             "Action": "sts:AssumeRole"
         }
     ]
 }</code></pre>
-                        <strong>Step 3:</strong> Paste the new Role ARN below.
+                        </div>
+
+                        <div class="mb-3">
+                            <strong class="text-dark d-block mb-1">Step 2: Add Read-Only Permissions</strong>
+                            <ol class="mb-0 ps-3">
+                                <li>Click <strong>Next</strong>.</li>
+                                <li>In the permissions search bar, type <code>ViewOnlyAccess</code> and check the box next to it.</li>
+                                <li>Click <strong>Next</strong>, give your role a name (e.g., <code>CostGuard-Scanner-Role</code>), and click <strong>Create role</strong>.</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <strong class="text-dark d-block mb-1">Step 3: Connect Your Account</strong>
+                            <p class="mb-0">Click on your newly created role, copy the <strong>ARN</strong> (Amazon Resource Name), and paste it into the form below.</p>
+                        </div>
                     </div>
                     <form method="POST">
                         {% csrf_token %}
