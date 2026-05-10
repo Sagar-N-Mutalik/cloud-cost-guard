@@ -86,6 +86,13 @@ resource "aws_instance" "costguard_server" {
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
+  # ---> ADD THIS BLOCK TO FIX THE DOCKER HANG <---
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required" 
+    http_put_response_hop_limit = 2          # Allows the badge to reach Docker
+  }
+
   # Cloud-init script that runs on first boot
   user_data = <<-EOF
               #!/bin/bash
