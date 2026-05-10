@@ -363,7 +363,22 @@
                 </div>
                 <div class="custom-card-body">
                     <div class="alert alert-info border-0 bg-light text-muted small mb-4">
-                        <i class="fa-solid fa-circle-info me-1"></i> Create an IAM Role with <strong>ViewOnlyAccess</strong>, then paste its ARN below.
+                        <i class="fa-solid fa-circle-info me-1"></i> <strong>Step 1:</strong> Create an IAM Role with <strong>ViewOnlyAccess</strong>.<br><br>
+                        <strong>Step 2:</strong> In the <strong>Trust relationships</strong> tab of your new role, click <em>Edit trust policy</em> and paste the following. <br>
+                        <span class="text-danger fw-bold">Note for Developer: Replace YOUR_AWS_ACCOUNT_ID with your actual 12-digit AWS Account ID before the next deployment.</span>
+                        <pre class="bg-dark text-white p-2 mt-2 rounded" style="font-family: monospace;"><code>{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:root"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}</code></pre>
+                        <strong>Step 3:</strong> Paste the new Role ARN below.
                     </div>
                     <form method="POST">
                         {% csrf_token %}

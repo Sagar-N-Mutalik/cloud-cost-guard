@@ -38,13 +38,53 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
-# 2. EC2 Instance
+# 2. IAM Role for EC2 to assume other roles
+resource "aws_iam_role" "costguard_server_role" {
+  name = "costguard-server-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "allow_scanning" {
+  name = "allow-scanning"
+  role = aws_iam_role.costguard_server_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "sts:AssumeRole"
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "costguard-server-profile"
+  role = aws_iam_role.costguard_server_role.name
+}
+
+# 3. EC2 Instance
 resource "aws_instance" "costguard_server" {
   ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS (us-east-1)
   instance_type = "t3.micro"
   key_name      = "costguard-key"
   
   vpc_security_group_ids = [aws_security_group.web_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   # Cloud-init script that runs on first boot
   user_data = <<-EOF
@@ -74,7 +114,7 @@ resource "aws_instance" "costguard_server" {
   }
 }
 
-# 3. Output the IP
+# 4. Output the IP
 output "ec2_public_ip" {
   value = aws_instance.costguard_server.public_ip
 }
