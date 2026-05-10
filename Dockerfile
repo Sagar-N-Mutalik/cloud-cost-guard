@@ -22,4 +22,4 @@ COPY . /app/
 RUN python manage.py collectstatic --noinput
 
 # Run migrations AND start the Gunicorn server
-CMD sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:80 costguard_project.wsgi:application"
+CMD sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:80 --timeout 300 costguard_project.wsgi:application"
