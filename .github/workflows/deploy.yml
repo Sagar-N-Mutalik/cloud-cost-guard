@@ -91,12 +91,12 @@ jobs:
             # 4. Build the container using sudo
             sudo docker build -t costguard-app .
             
-            # 5. Clean up old containers
-            sudo docker stop $(sudo docker ps -q --filter ancestor=costguard-app) || true
-            sudo docker rm $(sudo docker ps -aq --filter ancestor=costguard-app) || true
+            # 5. Clean up old containers (The Nuclear Option)
+            # This forcefully removes ALL existing containers to guarantee Port 80 is free
+            sudo docker rm -f $(sudo docker ps -aq) || true
             
-            # 6. Run the new container using the safe environment variables
-            sudo docker run -d -p 80:80 \
+            # 6. Run the new container using a strict NAME (--name costguard-server)
+            sudo docker run -d --name costguard-server -p 80:80 \
               -e DATABASE_URL="$DB_URL" \
               -e SECRET_KEY="$DJANGO_KEY" \
               -e EMAIL_PASSWORD="$EMAIL_PASS" \
