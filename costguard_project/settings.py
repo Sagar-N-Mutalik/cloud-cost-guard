@@ -132,6 +132,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sagarnmutalik6@gmail.com' # Replace with a real Gmail address
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD') # Pulled securely! # Replace with a Google App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'

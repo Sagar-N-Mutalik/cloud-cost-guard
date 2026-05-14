@@ -5,7 +5,7 @@ from .models import ScanResult
 
 def run_scan_for_account(account):
     """Runs the scan logic for a single account and returns the number of zombies found."""
-    sts_client = boto3.client('sts', region_name='us-east-1')
+    sts_client = boto3.client('sts')
     zombies_found = 0
     
     try:
