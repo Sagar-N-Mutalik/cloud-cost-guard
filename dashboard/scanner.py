@@ -16,27 +16,32 @@ def run_scan_for_account(account):
         )
         creds = assumed_role['Credentials']
         
-        # 2. Connect to EC2
-        ec2 = boto3.client('ec2', aws_access_key_id=creds['AccessKeyId'], aws_secret_access_key=creds['SecretAccessKey'], aws_session_token=creds['SessionToken'], region_name='us-east-1')
-        
-        # 3. Scan EC2 Instances
-        instances = ec2.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+        # 2. Fetch all AWS Regions
+        temp_ec2 = boto3.client('ec2', aws_access_key_id=creds['AccessKeyId'], aws_secret_access_key=creds['SecretAccessKey'], aws_session_token=creds['SessionToken'], region_name='us-east-1')
+        regions = [region['RegionName'] for region in temp_ec2.describe_regions()['Regions']]
         
         # Clear old results for this account so the dashboard only shows the *latest* state
         ScanResult.objects.filter(account=account).delete()
         
         email_message = f"Hello {account.user.username},\n\nWarning! We found active resources in your AWS account ({account.account_name}):\n\n"
 
-        for reservation in instances['Reservations']:
-            for instance in reservation['Instances']:
-                instance_id = instance['InstanceId']
-                uptime = datetime.now(timezone.utc) - instance['LaunchTime']
-                hours = uptime.total_seconds() / 3600
-                
-                # Save to DB
-                ScanResult.objects.create(account=account, instance_id=f"EC2: {instance_id}", hours_running=hours)
-                email_message += f"- EC2 Instance: {instance_id} (Running for {round(hours, 1)} hours)\n"
-                zombies_found += 1
+        for region in regions:
+            # Initialize regional client
+            ec2 = boto3.client('ec2', aws_access_key_id=creds['AccessKeyId'], aws_secret_access_key=creds['SecretAccessKey'], aws_session_token=creds['SessionToken'], region_name=region)
+            
+            # 3. Scan EC2 Instances in region
+            instances = ec2.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+            
+            for reservation in instances['Reservations']:
+                for instance in reservation['Instances']:
+                    instance_id = instance['InstanceId']
+                    uptime = datetime.now(timezone.utc) - instance['LaunchTime']
+                    hours = uptime.total_seconds() / 3600
+                    
+                    # Save to DB
+                    ScanResult.objects.create(account=account, instance_id=f"EC2 ({region}): {instance_id}", hours_running=hours)
+                    email_message += f"- EC2 Instance ({region}): {instance_id} (Running for {round(hours, 1)} hours)\n"
+                    zombies_found += 1
 
         # (You can copy your NAT and RDS checks here just like in the management command!)
 

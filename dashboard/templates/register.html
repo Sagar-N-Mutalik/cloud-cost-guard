@@ -1,241 +1,91 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | Cloud Cost Guard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Create Account | CostGuard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --aws-blue: #232F3E;
-            --aws-blue-dark: #161e29;
-            --aws-orange: #FF9900;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-        .split-layout {
-            display: flex;
-            min-height: 100vh;
-            flex-wrap: wrap;
-        }
-        .info-side {
-            flex: 1 1 50%;
-            background: linear-gradient(135deg, var(--aws-blue) 0%, var(--aws-blue-dark) 100%);
-            color: white;
-            padding: 60px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            min-height: 400px;
-        }
-        /* Floating background icons */
-        .floating-icon {
-            position: absolute;
-            opacity: 0.05;
-            color: white;
-            animation: float 6s ease-in-out infinite;
-        }
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
-        }
-        .icon-1 { top: 15%; right: 20%; font-size: 7rem; animation-delay: 1s; }
-        .icon-2 { bottom: 15%; left: 15%; font-size: 5rem; animation-delay: 3s; }
-        .icon-3 { top: 50%; right: 10%; font-size: 4rem; animation-delay: 0s; }
-
-        .form-side {
-            flex: 1 1 50%;
-            background: #f8fafc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            position: relative;
-        }
-        .auth-card {
+        input[type="text"], input[type="password"], input[type="email"] {
             width: 100%;
-            max-width: 440px;
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.05);
-            animation: slideUp 0.6s ease;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .btn-auth {
-            background-color: var(--aws-orange);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            width: 100%;
-            border: none;
-            transition: all 0.3s;
-            margin-top: 15px;
-        }
-        .btn-auth:hover {
-            background-color: #e88b00;
-            transform: translateY(-2px);
-        }
-        
-        /* Fact Boxes */
-        .fact-box {
-            background: rgba(255,255,255,0.05);
-            border-left: 4px solid var(--aws-orange);
-            padding: 20px;
-            border-radius: 0 8px 8px 0;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s;
-            z-index: 2;
-            position: relative;
-        }
-        .fact-box:hover {
-            transform: translateX(10px);
-            background: rgba(255,255,255,0.08);
-        }
-
-        /* Style django forms manually */
-        p { margin-bottom: 1rem; }
-        p label {
-            display: block;
+            padding: 0.625rem 1rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
             margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #374151;
-            font-size: 0.9rem;
         }
-        p input {
-            display: block;
-            width: 100%;
-            font-size: 1rem;
-            font-weight: 400;
-            color: #212529;
-            background-color: #f9fafb;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 12px 16px;
-            transition: all 0.15s ease-in-out;
-            box-sizing: border-box;
-        }
-        p input:focus {
-            background-color: #fff;
-            border-color: var(--aws-orange);
-            outline: 0;
-            box-shadow: 0 0 0 4px rgba(255, 153, 0, 0.1);
+        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+            background-color: #ffffff;
+            outline: 2px solid #000;
+            outline-offset: -1px;
+            border-color: #000;
         }
         .helptext {
+            font-size: 0.75rem;
+            color: #64748b;
             display: block;
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-top: 4px;
+            margin-bottom: 1rem;
+            margin-top: -0.25rem;
+        }
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 0.375rem;
+            margin-top: 0.5rem;
         }
         ul.errorlist {
             color: #ef4444;
-            font-size: 0.85rem;
-            padding-left: 20px;
-            margin-top: 4px;
-            margin-bottom: 0;
-        }
-
-        @media (max-width: 991px) {
-            .info-side { display: none; }
-            .form-side { flex: 1 1 100%; background: #f3f4f6; }
-            .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
-<body>
+<body class="bg-[#fafafa] flex items-center justify-center min-h-screen text-slate-800 antialiased p-4 relative overflow-hidden">
 
-<div class="split-layout">
-    <div class="info-side">
-        <!-- Floating Icons -->
-        <i class="fa-brands fa-aws floating-icon icon-1"></i>
-        <i class="fa-solid fa-chart-line floating-icon icon-2"></i>
-        <i class="fa-solid fa-shield-halved floating-icon icon-3"></i>
+    <!-- Decorative background elements -->
+    <div class="absolute top-0 w-full h-[500px] bg-gradient-to-b from-slate-100 to-transparent -z-10"></div>
+    <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-orange-50 blur-3xl opacity-50 -z-10"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] rounded-full bg-blue-50 blur-3xl opacity-50 -z-10"></div>
 
-        <div style="z-index: 2;">
-            <h2 class="fw-bold d-flex align-items-center gap-3">
-                <i class="fa-brands fa-aws text-warning" style="font-size: 2.5rem;"></i>
-                Cloud Cost Guard
-            </h2>
-            <p class="lead mt-3 text-white-50">Optimize your AWS infrastructure automatically.</p>
-        </div>
-        
-        <div class="facts-container mt-4 mb-4">
-            <div class="fact-box mb-4" style="min-height: 140px;">
-                <i class="fa-solid fa-lightbulb text-warning mb-2 fs-4"></i>
-                <h5 class="fw-bold">Did you know?</h5>
-                <p id="fact-text" class="text-white-50 mb-0" style="transition: opacity 0.5s ease-in-out;">Our platform scans for unattached volumes, idle load balancers, and obsolete snapshots to immediately reduce your monthly AWS bill.</p>
+    <div class="w-full max-w-[440px]">
+        <div class="text-center mb-8 mt-8">
+            <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center text-white mx-auto shadow-md mb-6">
+                <i class="fa-solid fa-cloud-bolt text-xl"></i>
             </div>
-            
-            <div class="fact-box">
-                <i class="fa-solid fa-lock text-warning mb-2 fs-4"></i>
-                <h5 class="fw-bold">100% Secure & Read-Only</h5>
-                <p class="text-white-50 mb-0">We never ask for root credentials. By using an IAM Role with <code>ViewOnlyAccess</code>, Cost Guard scans your resources securely without the ability to modify them.</p>
-            </div>
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">Create your account</h2>
+            <p class="text-sm text-slate-500 mt-2">Start optimizing your AWS costs today</p>
         </div>
-        
-        <div class="mt-auto" style="z-index: 2;">
-            <small class="text-white-50">&copy; 2026 Cloud Cost Guard. Cloud Cost Optimization.</small>
-        </div>
-    </div>
-    
-    <div class="form-side">
-        <div class="auth-card">
-            <div class="text-center mb-4">
-                <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3 shadow-sm border" style="width: 70px; height: 70px;">
-                    <i class="fa-brands fa-aws text-warning" style="font-size: 2.5rem;"></i>
-                </div>
-                <h3 class="fw-bold text-dark">Create Account</h3>
-                <p class="text-muted small">Start optimizing your AWS costs today.</p>
-            </div>
+
+        <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 mb-8">
             <form method="POST">
                 {% csrf_token %}
+                
                 {{ form.as_p }}
-                <button type="submit" class="btn-auth"><i class="fa-solid fa-user-plus me-2"></i>Sign Up</button>
-            </form>
-            <div class="text-center mt-4 text-muted small">
-                Already have an account? <a href="{% url 'login' %}" class="fw-bold text-decoration-none" style="color: var(--aws-orange);">Log in here</a>
-            </div>
-        </div>
-    </div>
-</div>
 
-<script>
-    const facts = [
-        "Our platform scans for unattached volumes, idle load balancers, and obsolete snapshots to immediately reduce your monthly AWS bill.",
-        "Over 30% of enterprise cloud spend is wasted on abandoned or overprovisioned resources like forgotten EC2 instances and detached EBS volumes.",
-        "Idle Elastic Load Balancers (ELBs) keep charging you every hour even if no traffic is flowing through them.",
-        "Zombie RDS databases often stem from abandoned development or testing environments that were never spun down.",
-        "Unattached Elastic IPs (EIPs) incur hourly charges. Always release them if they aren't associated with a running instance."
-    ];
-    let factIndex = 0;
-    const factText = document.getElementById('fact-text');
-    
-    setInterval(() => {
-        if (!factText) return;
-        factText.style.opacity = 0;
-        setTimeout(() => {
-            factIndex = (factIndex + 1) % facts.length;
-            factText.innerText = facts[factIndex];
-            factText.style.opacity = 1;
-        }, 500);
-    }, 5000);
-</script>
+                <button type="submit" class="w-full bg-black hover:bg-slate-800 text-white font-medium py-2.5 rounded-lg transition-colors shadow-sm mt-6">
+                    Create Account
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-sm text-slate-500 pb-8">
+            Already have an account? <a href="{% url 'login' %}" class="font-medium text-slate-900 hover:underline">Sign in</a>
+        </p>
+    </div>
 </body>
 </html>

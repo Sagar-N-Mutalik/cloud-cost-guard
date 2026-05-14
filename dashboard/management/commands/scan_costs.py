@@ -27,79 +27,90 @@ class Command(BaseCommand):
                 )
                 creds = assumed_role['Credentials']
                 
-                # 2. Initialize the AWS Clients for different services
-                ec2 = boto3.client(
+                # 2. Fetch all AWS Regions
+                temp_ec2 = boto3.client(
                     'ec2',
-                    aws_access_key_id=creds['AccessKeyId'],
-                    aws_secret_access_key=creds['SecretAccessKey'],
-                    aws_session_token=creds['SessionToken'],
-                    region_name='us-east-1' # Defaulting to N. Virginia
-                )
-
-                rds = boto3.client(
-                    'rds',
                     aws_access_key_id=creds['AccessKeyId'],
                     aws_secret_access_key=creds['SecretAccessKey'],
                     aws_session_token=creds['SessionToken'],
                     region_name='us-east-1'
                 )
+                regions = [region['RegionName'] for region in temp_ec2.describe_regions()['Regions']]
                 
                 found_zombies = False
                 email_message = f"Hello {account.user.username},\n\nWarning! We found these active resources running in your AWS account ({account.account_name}):\n\n"
 
-                # --- CHECK 1: EC2 INSTANCES ---
-                instances = ec2.describe_instances(
-                    Filters=[{'Name': 'instance-state-name', 'Values': ['running']}]
-                )
-                for reservation in instances['Reservations']:
-                    for instance in reservation['Instances']:
-                        instance_id = instance['InstanceId']
-                        uptime = datetime.now(timezone.utc) - instance['LaunchTime']
-                        hours = uptime.total_seconds() / 3600
-                        
-                        ScanResult.objects.create(
-                            account=account,
-                            instance_id=f"EC2: {instance_id}",
-                            hours_running=hours
-                        )
-                        
-                        email_message += f"- EC2 Instance: {instance_id} (Running for {round(hours, 1)} hours)\n"
-                        found_zombies = True
-
-                # --- CHECK 2: NAT GATEWAYS ---
-                nat_gateways = ec2.describe_nat_gateways(
-                    Filters=[{'Name': 'state', 'Values': ['available']}]
-                )
-                for nat in nat_gateways['NatGateways']:
-                    nat_id = nat['NatGatewayId']
-                    uptime = datetime.now(timezone.utc) - nat['CreateTime']
-                    hours = uptime.total_seconds() / 3600
-
-                    ScanResult.objects.create(
-                        account=account,
-                        instance_id=f"NAT: {nat_id}",
-                        hours_running=hours
+                for region in regions:
+                    # Initialize regional clients
+                    ec2 = boto3.client(
+                        'ec2',
+                        aws_access_key_id=creds['AccessKeyId'],
+                        aws_secret_access_key=creds['SecretAccessKey'],
+                        aws_session_token=creds['SessionToken'],
+                        region_name=region
                     )
 
-                    email_message += f"- NAT Gateway: {nat_id} (Running for {round(hours, 1)} hours. High Cost Alert!)\n"
-                    found_zombies = True
+                    rds = boto3.client(
+                        'rds',
+                        aws_access_key_id=creds['AccessKeyId'],
+                        aws_secret_access_key=creds['SecretAccessKey'],
+                        aws_session_token=creds['SessionToken'],
+                        region_name=region
+                    )
 
-                # --- CHECK 3: RDS DATABASES ---
-                databases = rds.describe_db_instances()
-                for db in databases['DBInstances']:
-                    if db['DBInstanceStatus'] == 'available':
-                        db_id = db['DBInstanceIdentifier']
-                        uptime = datetime.now(timezone.utc) - db['InstanceCreateTime']
+                    # --- CHECK 1: EC2 INSTANCES ---
+                    instances = ec2.describe_instances(
+                        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}]
+                    )
+                    for reservation in instances['Reservations']:
+                        for instance in reservation['Instances']:
+                            instance_id = instance['InstanceId']
+                            uptime = datetime.now(timezone.utc) - instance['LaunchTime']
+                            hours = uptime.total_seconds() / 3600
+                            
+                            ScanResult.objects.create(
+                                account=account,
+                                instance_id=f"EC2 ({region}): {instance_id}",
+                                hours_running=hours
+                            )
+                            
+                            email_message += f"- EC2 Instance ({region}): {instance_id} (Running for {round(hours, 1)} hours)\n"
+                            found_zombies = True
+
+                    # --- CHECK 2: NAT GATEWAYS ---
+                    nat_gateways = ec2.describe_nat_gateways(
+                        Filters=[{'Name': 'state', 'Values': ['available']}]
+                    )
+                    for nat in nat_gateways['NatGateways']:
+                        nat_id = nat['NatGatewayId']
+                        uptime = datetime.now(timezone.utc) - nat['CreateTime']
                         hours = uptime.total_seconds() / 3600
 
                         ScanResult.objects.create(
                             account=account,
-                            instance_id=f"RDS: {db_id}",
+                            instance_id=f"NAT ({region}): {nat_id}",
                             hours_running=hours
                         )
 
-                        email_message += f"- RDS Database: {db_id} (Running for {round(hours, 1)} hours)\n"
+                        email_message += f"- NAT Gateway ({region}): {nat_id} (Running for {round(hours, 1)} hours. High Cost Alert!)\n"
                         found_zombies = True
+
+                    # --- CHECK 3: RDS DATABASES ---
+                    databases = rds.describe_db_instances()
+                    for db in databases['DBInstances']:
+                        if db['DBInstanceStatus'] == 'available':
+                            db_id = db['DBInstanceIdentifier']
+                            uptime = datetime.now(timezone.utc) - db['InstanceCreateTime']
+                            hours = uptime.total_seconds() / 3600
+
+                            ScanResult.objects.create(
+                                account=account,
+                                instance_id=f"RDS ({region}): {db_id}",
+                                hours_running=hours
+                            )
+
+                            email_message += f"- RDS Database ({region}): {db_id} (Running for {round(hours, 1)} hours)\n"
+                            found_zombies = True
                 
                 # --- FINAL STEP: SEND NOTIFICATION ---
                 if found_zombies:
