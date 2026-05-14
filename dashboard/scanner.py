@@ -51,7 +51,7 @@ def run_scan_for_account(account):
                 message=email_message,
                 from_email=None,
                 recipient_list=[account.user.email],
-                fail_silently=True,
+                fail_silently=False,
             )
             
     except Exception as e:
