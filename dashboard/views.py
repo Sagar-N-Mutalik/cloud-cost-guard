@@ -22,11 +22,11 @@ def dashboard_view(request):
             )
             
             # TRIGGER LIVE SCAN IMMEDIATELY
-            status = run_scan_for_account(account)
+            status, error_message = run_scan_for_account(account)
             
             # Send flash messages to the UI based on the scan result
             if status == -1:
-                messages.error(request, "Account saved, but we couldn't scan it. Please check your IAM Role ARN permissions.")
+                messages.error(request, f"Account saved, but we couldn't scan it: {error_message}")
             elif status > 0:
                 messages.warning(request, f"Account connected! Warning: We immediately found {status} running resources. An email has been sent. Next background scan in 4 hours.")
             else:
@@ -74,10 +74,10 @@ def manual_scan(request, account_id):
     """Triggered when the user clicks the 'Scan Now' button"""
     account = get_object_or_404(ConnectedAccount, id=account_id, user=request.user)
     
-    status = run_scan_for_account(account)
+    status, error_message = run_scan_for_account(account)
     
     if status == -1:
-        messages.error(request, f"Scan failed for {account.account_name}. Ensure your AWS IAM Role has the 'ViewOnlyAccess' permission attached.")
+        messages.error(request, f"Scan failed for {account.account_name}: {error_message}")
     elif status > 0:
         messages.warning(request, f"Scan complete! We found {status} running resources in {account.account_name}.")
     else:

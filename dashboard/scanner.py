@@ -5,7 +5,7 @@ from .models import ScanResult
 
 def run_scan_for_account(account):
     """Runs the scan logic for a single account and returns the number of zombies found."""
-    sts_client = boto3.client('sts')
+    sts_client = boto3.client('sts', region_name='us-east-1')
     zombies_found = 0
     
     try:
@@ -56,6 +56,6 @@ def run_scan_for_account(account):
             
     except Exception as e:
         print(f"Scan failed for {account.account_name}: {e}")
-        return -1 # Indicates an error (like Access Denied)
+        return (-1, str(e)) # Indicates an error (like Access Denied)
 
-    return zombies_found
+    return (zombies_found, None)
